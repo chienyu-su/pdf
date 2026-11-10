@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>森林 PDF 頁面整理工作站</title>
+<style>
+:root{
+ --canvas:#e8f7e9;--paper:#fff;--powder:#d2efd8;--powder-soft:#f7fff6;
+ --sky:#57b9d8;--sky-soft:#e2f6fc;--indigo:#2f699e;--indigo-soft:#e4f0fa;
+ --primary:#216b45;--primary-dark:#154a32;--primary-soft:#ddf3e5;
+ --green:#2f806d;--green-soft:#e1f6ef;--amber:#805800;--amber-soft:#fff0bd;
+ --red:#b6403b;--red-soft:#fde5e3;--orange:#e87936;--yellow:#f5c84c;
+ --ink:#293d32;--soft-ink:#4f6557;--muted:#718276;--line:#cfe0d3;
+ --glass:rgba(255,255,255,.88);--shadow:0 22px 60px rgba(36,90,60,.16);
+ --shadow-soft:0 12px 28px rgba(36,90,60,.10);
+}
+*{box-sizing:border-box}
+input,select,textarea{max-width:100%}
+body{margin:0;min-height:100vh;font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;color:var(--ink);
+ background:radial-gradient(circle at 8% 10%,rgba(87,185,216,.24),transparent 25%),
+ radial-gradient(circle at 92% 12%,rgba(245,200,76,.27),transparent 28%),
+ radial-gradient(circle at 52% 96%,rgba(33,107,69,.15),transparent 32%),
+ linear-gradient(135deg,#dff3e3 0%,#f7fff6 48%,#e6f6fb 100%);background-attachment:fixed}
+.container{width:min(1180px,calc(100% - 30px));margin:auto;padding:22px 0 55px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 18px;border-radius:999px;
+ background:var(--glass);border:2px solid white;box-shadow:var(--shadow-soft);margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:950;letter-spacing:.02em}
+.logo{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;color:white;background:linear-gradient(135deg,var(--primary-dark),var(--primary));box-shadow:0 10px 22px #216b4540;transform:rotate(-5deg);font-size:21px}
+.menu{display:flex;gap:8px;font-size:14px;font-weight:850;color:var(--soft-ink)}
+.menu a{text-decoration:none;color:inherit;padding:9px 12px;border-radius:999px}
+.menu a:hover{background:var(--amber-soft);color:var(--primary)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;margin-bottom:22px}
+.hero-card{position:relative;overflow:hidden;min-height:310px;padding:clamp(25px,4vw,44px);border-radius:36px;
+ background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.68)),linear-gradient(135deg,#216b4520,#57b9d833,#f5c84c30);
+ border:2px solid white;box-shadow:var(--shadow)}
+.hero-card:before{content:"";position:absolute;width:180px;height:180px;right:-55px;top:-65px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--primary));opacity:.72}
+.hero-card:after{content:"";position:absolute;width:120px;height:120px;left:-35px;bottom:-45px;border-radius:50%;background:linear-gradient(135deg,var(--green-soft),var(--sky));opacity:.8}
+.hero-content{position:relative;z-index:1;max-width:650px}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 14px;background:var(--primary-soft);color:var(--primary-dark);font-size:13px;font-weight:950;margin-bottom:17px}
+h1{margin:0;font-size:clamp(32px,5vw,54px);line-height:1.15;letter-spacing:.02em}
+.accent{background:linear-gradient(90deg,var(--primary-dark),var(--primary),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--soft-ink);line-height:1.85;font-size:17px;margin:15px 0 0}
+.side-panel{display:grid;gap:14px}
+.info-card{border-radius:28px;background:rgba(255,255,255,.82);border:1px solid white;box-shadow:var(--shadow-soft);padding:21px}
+.info-card h2{margin:0 0 8px;font-size:22px}
+.info-card p{margin:0;color:var(--soft-ink);line-height:1.75}
+.tip{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:17px;background:var(--powder-soft);border:1px solid var(--line);margin-top:10px}
+.tip-icon{width:38px;height:38px;flex:0 0 38px;border-radius:13px;display:grid;place-items:center;background:var(--sky-soft);font-size:19px}
+.section{border-radius:32px;background:var(--glass);border:2px solid white;box-shadow:var(--shadow-soft);padding:25px;margin-bottom:21px;backdrop-filter:blur(14px)}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:17px}
+.section h2{margin:0;font-size:25px}
+.desc{margin:6px 0 0;color:var(--soft-ink);line-height:1.7}
+.upload-zone{border:2px dashed #8bb99b;border-radius:25px;padding:28px;text-align:center;background:linear-gradient(135deg,#f7fff6,#e9f8fb);transition:.2s}
+.upload-zone.drag{background:var(--primary-soft);border-color:var(--primary);transform:scale(1.005)}
+.upload-icon{font-size:43px;margin-bottom:8px}
+.upload-zone h3{margin:4px 0 7px;font-size:20px}
+.upload-zone p{margin:0 0 16px;color:var(--muted);line-height:1.6}
+input[type=file]{display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;text-decoration:none;border-radius:999px;padding:13px 19px;color:white;font-size:15px;font-weight:950;cursor:pointer;background:linear-gradient(135deg,var(--primary),var(--primary-dark));box-shadow:0 12px 24px #216b4538;transition:transform .18s,filter .18s}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.light{color:var(--primary);background:white;border:2px solid #216b4528;box-shadow:var(--shadow-soft)}
+.btn.danger{background:linear-gradient(135deg,#bd514a,#96352f)}
+.btn.small{padding:9px 13px;font-size:13px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #57b9d899;outline-offset:3px}
+.file-meta{display:none;margin-top:15px;padding:13px 16px;border-radius:18px;background:var(--green-soft);color:#225f4e;font-weight:800;line-height:1.6}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:15px 0}
+.toolbar input[type=text]{flex:1;min-width:180px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:white;font:inherit}
+.counter{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto}
+.counter span{padding:8px 12px;border-radius:999px;background:var(--primary-soft);color:var(--primary-dark);font-size:13px;font-weight:900}
+.page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
+.page-card{position:relative;border:2px solid #e1ece3;border-radius:19px;padding:10px;background:white;box-shadow:0 7px 17px #244b3010;transition:.15s;cursor:pointer;min-width:0}
+.page-card.selected{border-color:var(--primary);background:#f2fbf3;box-shadow:0 0 0 3px #216b4518}
+.page-card canvas{display:block;width:100%;height:auto;background:#f4f4f4;border-radius:9px;border:1px solid #e7e7e7}
+.page-card .page-label{display:flex;justify-content:space-between;align-items:center;gap:5px;padding:9px 2px 1px;font-size:13px;font-weight:900}
+.page-card input{width:18px;height:18px;accent-color:var(--primary)}
+.page-card .order{font-size:11px;color:var(--primary);background:var(--primary-soft);padding:4px 7px;border-radius:999px}
+.empty-state{text-align:center;padding:36px 12px;color:var(--muted);background:#ffffff80;border-radius:20px}
+.empty-state strong{display:block;color:var(--soft-ink);font-size:17px;margin-bottom:6px}
+.selection-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.range-help{font-size:13px;color:var(--muted);line-height:1.6;margin-top:9px}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.export-card{border-radius:23px;padding:20px;background:white;border:1px solid var(--line);box-shadow:var(--shadow-soft)}
+.export-card h3{margin:0 0 7px;font-size:19px}
+.export-card p{margin:0 0 15px;color:var(--soft-ink);line-height:1.7;font-size:14px}
+.export-card .btn{width:100%}
+.message{display:none;border-radius:18px;padding:14px 16px;margin-top:14px;font-weight:800;line-height:1.65}
+.message.good{display:block;background:var(--green-soft);color:#245e4d;border:1px solid #b9e3d2}
+.message.error{display:block;background:var(--red-soft);color:#8d302c;border:1px solid #f0c3bf}
+.progress-wrap{display:none;margin-top:15px}
+.progress{height:12px;border-radius:999px;background:#d7eadc;overflow:hidden}
+.progress span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--primary-dark),var(--primary),var(--orange),var(--yellow));transition:width .2s}
+.progress-text{font-size:13px;color:var(--muted);margin-top:6px}
+footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:10px}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.menu{display:none}}
+@media(max-width:620px){.container{width:calc(100% - 18px);padding-top:12px}.topbar{border-radius:22px}.hero-card{min-height:auto;border-radius:27px}.section{padding:17px;border-radius:25px}.section-head{align-items:flex-start;flex-direction:column}.export-grid{grid-template-columns:1fr}.page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.upload-zone{padding:22px 13px}.hero p{font-size:15px}}
+@media(max-width:360px){.page-grid{grid-template-columns:1fr 1fr}.brand{font-size:14px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Forest ambience: inline illustration + lightweight CSS motion */
+.hero-card{isolation:isolate;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(245,255,246,.72)),linear-gradient(135deg,#216b4520,#57b9d833,#f5c84c30)}
+.forest-scene{position:absolute;z-index:0;inset:auto 0 0;height:190px;pointer-events:none;overflow:hidden;opacity:.96}
+.forest-scene svg{width:100%;height:100%;display:block}
+.hero-content{z-index:2}
+.forest-sun{transform-origin:80% 35%;animation:sunPulse 5s ease-in-out infinite}
+.forest-tree{transform-box:fill-box;transform-origin:bottom center;animation:treeSway 6s ease-in-out infinite}
+.forest-tree.delay{animation-delay:-2.7s}
+.forest-leaf{position:absolute;z-index:3;pointer-events:none;font-size:22px;filter:drop-shadow(0 4px 4px #1d543522);animation:leafDrift 8s ease-in-out infinite}
+.forest-leaf.one{right:13%;top:24%;animation-delay:-1.5s}
+.forest-leaf.two{right:34%;top:55%;font-size:17px;animation-delay:-5s}
+.forest-leaf.three{right:5%;top:65%;font-size:15px;animation-delay:-3.5s}
+.firefly{position:absolute;z-index:1;width:7px;height:7px;border-radius:50%;background:#ffe58a;box-shadow:0 0 10px 4px #ffe58a88;animation:firefly 4s ease-in-out infinite}
+.firefly.f1{right:21%;top:32%}.firefly.f2{right:42%;top:63%;animation-delay:-1.4s}.firefly.f3{right:8%;top:43%;animation-delay:-2.5s}
+.logo{animation:logoBreathe 4s ease-in-out infinite}
+.upload-icon{display:inline-block;animation:gentleFloat 3.4s ease-in-out infinite}
+.tip-icon{animation:tipGlow 4s ease-in-out infinite}
+.page-card{transition:transform .22s ease,border-color .2s,box-shadow .2s}
+.page-card:hover{transform:translateY(-4px)}
+.info-card{transition:transform .25s ease,box-shadow .25s}
+.info-card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(36,90,60,.14)}
+@keyframes treeSway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@keyframes sunPulse{0%,100%{opacity:.72;transform:scale(.96)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes leafDrift{0%,100%{transform:translate(0,0) rotate(-12deg)}30%{transform:translate(-12px,-15px) rotate(16deg)}65%{transform:translate(9px,8px) rotate(35deg)}}
+@keyframes firefly{0%,100%{opacity:.15;transform:scale(.65)}50%{opacity:1;transform:scale(1.35)}}
+@keyframes logoBreathe{0%,100%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(1deg) translateY(-3px)}}
+@keyframes gentleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes tipGlow{0%,100%{box-shadow:0 0 0 0 #57b9d800}50%{box-shadow:0 0 0 6px #57b9d81c}}
+@media(max-width:620px){.forest-scene{height:125px;opacity:.62}.forest-leaf{font-size:17px}.forest-leaf.two{display:none}}
+@media(prefers-reduced-motion:reduce){
+ .forest-tree,.forest-sun,.forest-leaf,.firefly,.logo,.upload-icon,.tip-icon{animation:none!important}
+ .page-card:hover,.info-card:hover{transform:none}
+}
+
+</style>
+</head>
+<body>
+<main class="container">
+<nav class="topbar">
+ <div class="brand"><div class="logo">🌲</div><span>森林 PDF 頁面整理工作站</span></div>
+ <div class="menu"><a href="#upload">上傳文件</a><a href="#pages">選取頁面</a><a href="#export">匯出檔案</a></div>
+</nav>
+
+<section class="hero">
+ <div class="hero-card">
+  <div class="forest-scene" aria-hidden="true">
+   <svg viewBox="0 0 900 220" preserveAspectRatio="xMidYMax slice" role="presentation">
+    <defs>
+     <linearGradient id="forestMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8f1dc" stop-opacity="0"/><stop offset="1" stop-color="#b6dfc0" stop-opacity=".72"/></linearGradient>
+     <linearGradient id="forestHill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8fc79b"/><stop offset="1" stop-color="#397d5b"/></linearGradient>
+    </defs>
+    <circle class="forest-sun" cx="755" cy="70" r="42" fill="#f7cf68" opacity=".8"/>
+    <path d="M0 150 Q130 75 270 142 T540 130 T900 118 V220 H0Z" fill="#c5e7ca" opacity=".7"/>
+    <path d="M0 174 Q170 105 330 165 T650 150 T900 160 V220 H0Z" fill="url(#forestHill)" opacity=".62"/>
+    <path d="M0 190 Q190 145 360 188 T700 176 T900 182 V220 H0Z" fill="#286a4b" opacity=".82"/>
+    <g class="forest-tree" fill="#286a4b">
+     <path d="M80 220V102h15v118Z" fill="#795b3b"/><path d="M88 28 35 125h34l-45 54h128l-45-54h34Z"/>
+     <path d="M210 220V130h12v90Z" fill="#795b3b"/><path d="M216 65 174 142h27l-35 43h102l-35-43h27Z" opacity=".88"/>
+    </g>
+    <g class="forest-tree delay" fill="#1d5a40">
+     <path d="M820 220V104h15v116Z" fill="#795b3b"/><path d="M827 22 770 126h36l-47 58h137l-47-58h36Z"/>
+     <path d="M690 220V142h11v78Z" fill="#795b3b"/><path d="M695 83 659 151h24l-30 39h86l-30-39h24Z" opacity=".9"/>
+    </g>
+    <path d="M0 196 Q250 165 450 198 T900 190 V220 H0Z" fill="#1e6346" opacity=".7"/>
+    <g fill="#e9f7e8" opacity=".6"><circle cx="330" cy="154" r="3"/><circle cx="365" cy="168" r="2"/><circle cx="580" cy="148" r="3"/><circle cx="610" cy="164" r="2"/></g>
+    <path d="M0 0H900V220H0Z" fill="url(#forestMist)"/>
+   </svg>
+  </div>
+  <span class="forest-leaf one" aria-hidden="true">🍃</span>
+  <span class="forest-leaf two" aria-hidden="true">🌿</span>
+  <span class="forest-leaf three" aria-hidden="true">🍂</span>
+  <span class="firefly f1" aria-hidden="true"></span><span class="firefly f2" aria-hidden="true"></span><span class="firefly f3" aria-hidden="true"></span>
+<div class="hero-content">
+  <div class="pill">🌲 FOREST PDF ADVENTURE</div>
+  <h1>挑選需要的頁面<br><span class="accent">整理成新文件！</span></h1>
+  <p>像整理探險手冊一樣，先上傳 PDF、挑選想保留的頁面，再合併下載成 PDF 或 Word 文件。</p>
+ </div></div>
+ <aside class="side-panel">
+  <div class="info-card"><h2>🦊 今日整理小提醒</h2><p>勾選頁面後，可依勾選順序合併。若要調整順序，請使用頁面卡片上的上移、下移控制。</p></div>
+  <div class="info-card"><h2>🛡️ 檔案安全</h2><div class="tip"><div class="tip-icon">🔒</div><div><b>在瀏覽器本機處理</b><p>PDF 不會上傳到本工具的伺服器。請避免在公用電腦留下個人文件。</p></div></div></div>
+ </aside>
+</section>
+
+<section id="upload" class="section">
+ <div class="section-head"><div><h2>一、📂 放入你的 PDF</h2><p class="desc">選擇一份 PDF 文件，系統會讀取頁數並產生頁面預覽。</p></div></div>
+ <div class="upload-zone" id="dropZone">
+  <div class="upload-icon">📄</div><h3>把 PDF 放到這裡</h3>
+  <p>也可以點擊下方按鈕選擇檔案（目前一次處理一份 PDF）</p>
+  <label class="btn" for="pdfFile">🌿 選擇 PDF 檔案</label>
+  <input id="pdfFile" type="file" accept="application/pdf,.pdf">
+ </div>
+ <div class="file-meta" id="fileMeta" aria-live="polite"></div>
+</section>
+
+<section id="pages" class="section">
+ <div class="section-head"><div><h2>二、🧭 選擇要保留的頁面</h2><p class="desc">點選縮圖或勾選方框即可選取。頁面卡片會標示目前合併順序。</p></div></div>
+ <div class="toolbar">
+  <div class="selection-tools">
+   <button class="btn light small" id="selectAll" disabled>全選</button>
+   <button class="btn light small" id="selectNone" disabled>全部取消</button>
+   <button class="btn light small" id="invert" disabled>反向選取</button>
+  </div>
+  <div class="counter"><span id="totalCount">總頁數：0</span><span id="selectedCount">已選：0</span></div>
+ </div>
+ <div class="toolbar">
+  <input type="text" id="rangeInput" placeholder="例如：1-3, 5, 8-10" aria-label="輸入頁碼範圍" disabled>
+  <button class="btn light small" id="applyRange" disabled>套用頁碼</button>
+ </div>
+ <div class="range-help">頁碼範例：輸入 <b>1-3, 5, 8-10</b>，代表選取第 1、2、3、5、8、9、10 頁。超出頁數的項目會忽略。</div>
+ <div id="pageGrid" class="page-grid" style="margin-top:16px">
+  <div class="empty-state" style="grid-column:1/-1"><strong>🌱 等待探險文件加入</strong>上傳 PDF 後，這裡就會出現每一頁的預覽縮圖。</div>
+ </div>
+</section>
+
+<section id="export" class="section">
+ <div class="section-head"><div><h2>三、🎒 匯出整理好的文件</h2><p class="desc">至少選取一頁才能下載。PDF 保留頁面原貌；Word 會擷取文字並重新排版。</p></div></div>
+ <div class="export-grid">
+  <div class="export-card"><h3>📕 合併成 PDF</h3><p>依照目前選取順序合併頁面，盡可能保留原始文字、圖片與版面外觀。</p><button class="btn" id="downloadPdf" disabled>⬇️ 下載合併 PDF</button></div>
+  <div class="export-card"><h3>📝 匯出 Word 文件</h3><p>擷取所選頁面的文字，產生 Word 可開啟的 .doc 文件。複雜表格、圖片及版面可能無法完全還原。</p><button class="btn" id="downloadWord" disabled>⬇️ 下載 Word 文件</button></div>
+ </div>
+ <div class="progress-wrap" id="progressWrap"><div class="progress"><span id="progressBar"></span></div><div class="progress-text" id="progressText">準備中…</div></div>
+ <div class="message" id="message" role="status" aria-live="polite"></div>
+</section>
+<footer>🌿 森林整理小隊 · 檔案只在目前瀏覽器工作階段中處理<br>若重新整理或關閉頁面，請重新選取 PDF。</footer>
+</main>
+
+<!-- PDF.js：用於讀取 PDF、預覽頁面與擷取文字。需連網載入 CDN。 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- pdf-lib：用於保留原始頁面內容並合併輸出 PDF。需連網載入 CDN。 -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+"use strict";
+(() => {
+ const $ = id => document.getElementById(id);
+ const fileInput=$("pdfFile"),dropZone=$("dropZone"),pageGrid=$("pageGrid");
+ let pdfDoc=null,sourceBytes=null,fileName="整理後文件",pageItems=[],selected=[];
+ const setMessage=(text,type="good")=>{const el=$("message");el.textContent=text;el.className="message "+type};
+ const clearMessage=()=>{$("message").className="message";$("message").textContent=""};
+ const updateCounts=()=>{
+  $("totalCount").textContent="總頁數："+pageItems.length;
+  $("selectedCount").textContent="已選："+selected.length;
+  const ready=!!pdfDoc;
+  ["selectAll","selectNone","invert","rangeInput","applyRange"].forEach(id=>$(id).disabled=!ready);
+  $("downloadPdf").disabled=!selected.length;
+  $("downloadWord").disabled=!selected.length;
+  pageItems.forEach(item=>{
+   const index=selected.indexOf(item.num);
+   item.card.classList.toggle("selected",index!==-1);
+   item.check.checked=index!==-1;
+   item.order.textContent=index===-1?"未選取":"順序 "+(index+1);
+  });
+ };
+ const setSelected=arr=>{selected=arr.filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=pageItems.length&&a.indexOf(n)===i);updateCounts()};
+ const makeDownload=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)};
+ const progress=(show,pct=0,text="處理中…")=>{$("progressWrap").style.display=show?"block":"none";$("progressBar").style.width=pct+"%";$("progressText").textContent=text};
+ const loadPdf=async file=>{
+  clearMessage();
+  if(!file)return;
+  if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){setMessage("檔案格式不正確，請選擇 PDF 檔案。","error");return}
+  if(!window.pdfjsLib||!window.PDFLib){setMessage("PDF 工具程式載入失敗。請確認網路連線後重新整理頁面。","error");return}
+  try{
+   fileInput.disabled=true;pageGrid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><strong>🪄 正在讀取 PDF…</strong>請稍候，正在準備頁面預覽。</div>';
+   sourceBytes=await file.arrayBuffer();
+   const loading=pdfjsLib.getDocument({data:new Uint8Array(sourceBytes.slice(0))});
+   pdfDoc=await loading.promise;
+   fileName=file.name.replace(/\.pdf$/i,"")||"整理後文件";
+   pageItems=[];selected=[];
+   $("fileMeta").style.display="block";
+   $("fileMeta").textContent=`✅ 已載入：${file.name}　｜　共 ${pdfDoc.numPages} 頁　｜　${(file.size/1024/1024).toFixed(2)} MB`;
+   pageGrid.innerHTML="";
+   for(let n=1;n<=pdfDoc.numPages;n++){
+    const page=await pdfDoc.getPage(n);
+    const viewport=page.getViewport({scale:0.42});
+    const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+    canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+    const card=document.createElement("div");card.className="page-card";card.tabIndex=0;card.setAttribute("role","group");card.setAttribute("aria-label",`第 ${n} 頁`);
+    const check=document.createElement("input");check.type="checkbox";check.setAttribute("aria-label",`選取第 ${n} 頁`);
+    const label=document.createElement("div");label.className="page-label";
+    const pageNo=document.createElement("span");pageNo.textContent=`第 ${n} 頁`;
+    const order=document.createElement("span");order.className="order";order.textContent="未選取";
+    label.append(pageNo,order);card.append(canvas,label);pageGrid.appendChild(card);
+    const item={num:n,card,check,order};pageItems.push(item);
+    card.addEventListener("click",e=>{if(e.target===check)return;togglePage(n)});
+    card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();togglePage(n)}});
+    check.addEventListener("click",e=>e.stopPropagation());
+    check.addEventListener("change",()=>togglePage(n));
+    // 每頁以縮圖比例繪製，降低大型 PDF 的預覽負擔。
+    await page.render({canvasContext:ctx,viewport}).promise;
+   }
+   // 將勾選框放入卡片標籤，保留縮圖與頁碼的清楚層級。
+   pageItems.forEach(item=>{item.card.querySelector(".page-label").prepend(item.check)});
+   updateCounts();setMessage("PDF 已準備完成！請勾選要合併的頁面。");
+  }catch(err){pdfDoc=null;pageItems=[];selected=[];pageGrid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><strong>無法讀取這份 PDF</strong>檔案可能受密碼保護、損毀或格式不受支援。</div>';updateCounts();setMessage("讀取失敗："+(err&&err.message?err.message:"未知錯誤"),"error")}
+  finally{fileInput.disabled=false}
+ };
+ const togglePage=n=>{const i=selected.indexOf(n);if(i===-1)selected.push(n);else selected.splice(i,1);updateCounts()};
+ fileInput.addEventListener("change",()=>loadPdf(fileInput.files[0]));
+ ["dragenter","dragover"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add("drag")}));
+ ["dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove("drag")}));
+ dropZone.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)loadPdf(f)});
+ $("selectAll").addEventListener("click",()=>setSelected(pageItems.map(x=>x.num)));
+ $("selectNone").addEventListener("click",()=>setSelected([]));
+ $("invert").addEventListener("click",()=>setSelected(pageItems.map(x=>x.num).filter(n=>!selected.includes(n))));
+ $("applyRange").addEventListener("click",()=>{
+  const raw=$("rangeInput").value.trim();if(!raw){setMessage("請先輸入頁碼，例如 1-3, 5。","error");return}
+  const result=new Set();
+  try{raw.split(",").forEach(part=>{const p=part.trim();if(!p)return;const m=p.match(/^(\d+)\s*(?:-\s*(\d+))?$/);if(!m)throw Error("頁碼格式錯誤");let a=Number(m[1]),b=m[2]?Number(m[2]):a;if(a<1||b<a)throw Error("頁碼範圍不正確");for(let n=a;n<=Math.min(b,pageItems.length);n++)result.add(n)});setSelected([...result].sort((a,b)=>a-b));setMessage(`已依頁碼選取 ${selected.length} 頁。`)}catch(e){setMessage(e.message+"，請使用例如 1-3, 5 的格式。","error")}
+ });
+ const checkExport=()=>{if(!pdfDoc||!selected.length){setMessage("請先上傳 PDF，並至少選取一頁。","error");return false}return true};
+ $("downloadPdf").addEventListener("click",async()=>{
+  if(!checkExport())return;
+  const btn=$("downloadPdf");btn.disabled=true;clearMessage();progress(true,5,"正在建立新的 PDF…");
+  try{
+   const out=await PDFLib.PDFDocument.create();
+   const src=await PDFLib.PDFDocument.load(sourceBytes);
+   for(let i=0;i<selected.length;i++){const [copied]=await out.copyPages(src,[selected[i]-1]);out.addPage(copied);progress(true,Math.round(10+(i+1)/selected.length*80),`正在整理第 ${selected[i]} 頁（${i+1}/${selected.length}）…`)}
+   const bytes=await out.save();makeDownload(new Blob([bytes],{type:"application/pdf"}),`${fileName}_選取頁面.pdf`);
+   progress(true,100,"完成！下載已開始。");setMessage(`完成！已將 ${selected.length} 頁合併成 PDF。`);
+  }catch(e){setMessage("PDF 匯出失敗："+(e.message||"未知錯誤"),"error")}
+  finally{btn.disabled=!selected.length;setTimeout(()=>progress(false),1800)}
+ });
+ $("downloadWord").addEventListener("click",async()=>{
+  if(!checkExport())return;
+  const btn=$("downloadWord");btn.disabled=true;clearMessage();progress(true,3,"正在擷取 PDF 文字…");
+  try{
+   const parts=[];
+   for(let i=0;i<selected.length;i++){
+    const page=await pdfDoc.getPage(selected[i]);const content=await page.getTextContent();
+    const lines=[];let currentY=null,current="";
+    for(const item of content.items){
+     if(!item.str)continue;
+     const y=Math.round(item.transform[5]);
+     if(currentY!==null&&Math.abs(y-currentY)>3){if(current.trim())lines.push(current.trim());current=""}
+     else if(current&&item.hasEOL===false)current+=" ";
+     current+=item.str;currentY=y;
+     if(item.hasEOL){if(current.trim())lines.push(current.trim());current="";currentY=null}
+    }
+    if(current.trim())lines.push(current.trim());
+    parts.push(`<section class="pdf-page"><h2>第 ${selected[i]} 頁</h2><p>${lines.map(escapeHtml).join("<br>")||"（本頁未擷取到可辨識文字，可能是掃描圖片。）"}</p></section>`);
+    progress(true,Math.round((i+1)/selected.length*85),`正在擷取第 ${selected[i]} 頁（${i+1}/${selected.length}）…`);
+   }
+   const doc=`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><title>${escapeHtml(fileName)}_Word</title><style>body{font-family:Calibri,"Microsoft JhengHei",sans-serif;line-height:1.7;color:#222} .pdf-page{page-break-after:always;padding:12px 18px}h2{font-size:16pt;border-bottom:1px solid #aaa;padding-bottom:8px;color:#216b45}p{white-space:normal}</style></head><body>${parts.join("")}</body></html>`;
+   makeDownload(new Blob(["\ufeff",doc],{type:"application/msword;charset=utf-8"}),`${fileName}_選取頁面.doc`);
+   progress(true,100,"完成！Word 文件已建立。");setMessage("Word 文件已建立。此格式以擷取文字為主，掃描頁面若沒有文字層，內容可能無法擷取。");
+  }catch(e){setMessage("Word 匯出失敗："+(e.message||"未知錯誤"),"error")}
+  finally{btn.disabled=!selected.length;setTimeout(()=>progress(false),1800)}
+ });
+ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+ updateCounts();
+})();
+</script>
+</body>
+</html>
